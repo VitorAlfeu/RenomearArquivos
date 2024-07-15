@@ -8,20 +8,32 @@ public class RenomearArquivos {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         String continuar = "n";
+        String ultimoDiretorio = "";
 
         do {
             // Solicita os valores ao usuário
-            System.out.println("Digite o valor antigo: ");
+            System.out.println("Digite parte ou o nome do arquivo inteiro que deseja mudar (exemplo: antigo_nome): ");
             String valorAntigo = scanner.nextLine();
 
-            System.out.println("Digite o valor novo: ");
+            System.out.println("Digite a parte que substituirá o texto digitado acima no nome do arquivo (exemplo: novo_nome): ");
             String valorNovo = scanner.nextLine();
 
-            System.out.println("Digite a extensão dos arquivos (por exemplo, .yml): ");
-            String extensao = scanner.nextLine();
+            System.out.println("Digite a extensão dos arquivos (exemplo: .txt) ou deixe em branco para incluir todas as extensões: ");
+            String extensao = scanner.nextLine().trim();
+            
+            if (extensao.isEmpty()) {
+                extensao = null;
+            }
 
-            System.out.println("Digite o diretório (use uma barra inversa): ");
-            String diretorio = scanner.nextLine().replace("\\", "\\\\");
+            System.out.println("Digite o diretório (exemplo: C:\\Usuarios\\SeuUsuario\\Documentos\\Arquivos) ou pressione Enter para usar o último diretório utilizado: ");
+            String diretorio = scanner.nextLine().trim();
+            
+            if (diretorio.isEmpty() && !ultimoDiretorio.isEmpty()) {
+                diretorio = ultimoDiretorio;
+            } else {
+                diretorio = diretorio.replace("\\", "\\\\");
+                ultimoDiretorio = diretorio;
+            }
 
             File pasta = new File(diretorio);
 
@@ -31,7 +43,7 @@ public class RenomearArquivos {
                 continue;
             }
 
-            if (!extensao.startsWith(".")) {
+            if (extensao != null && !extensao.startsWith(".")) {
                 System.out.println("Extensão inválida. Por favor, certifique-se de que a extensão comece com um ponto.");
                 continue;
             }
@@ -60,7 +72,7 @@ public class RenomearArquivos {
             for (File arquivo : arquivos) {
                 if (arquivo.isDirectory()) {
                     count += contarArquivos(arquivo, valorAntigo, extensao);
-                } else if (arquivo.getName().contains(valorAntigo) && arquivo.getName().endsWith(extensao)) {
+                } else if (arquivo.getName().contains(valorAntigo) && (extensao == null || arquivo.getName().endsWith(extensao))) {
                     count++;
                 }
             }
@@ -75,7 +87,7 @@ public class RenomearArquivos {
             for (File arquivo : arquivos) {
                 if (arquivo.isDirectory()) {
                     count += renomearArquivos(arquivo, valorAntigo, valorNovo, extensao);
-                } else if (arquivo.getName().contains(valorAntigo) && arquivo.getName().endsWith(extensao)) {
+                } else if (arquivo.getName().contains(valorAntigo) && (extensao == null || arquivo.getName().endsWith(extensao))) {
                     String novoNome = arquivo.getName().replace(valorAntigo, valorNovo);
                     File novoArquivo = new File(arquivo.getParent(), novoNome);
                     if (arquivo.renameTo(novoArquivo)) {
