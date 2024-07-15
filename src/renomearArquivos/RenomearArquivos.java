@@ -7,41 +7,50 @@ public class RenomearArquivos {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        String continuar = "n";
 
-        // Solicita os valores ao usuário
-        System.out.println("Digite o valor antigo: ");
-        String valorAntigo = scanner.nextLine();
+        do {
+            // Solicita os valores ao usuário
+            System.out.println("Digite o valor antigo: ");
+            String valorAntigo = scanner.nextLine();
 
-        System.out.println("Digite o valor novo: ");
-        String valorNovo = scanner.nextLine();
+            System.out.println("Digite o valor novo: ");
+            String valorNovo = scanner.nextLine();
 
-        System.out.println("Digite a extensão dos arquivos (por exemplo, .yml): ");
-        String extensao = scanner.nextLine();
+            System.out.println("Digite a extensão dos arquivos (por exemplo, .yml): ");
+            String extensao = scanner.nextLine();
 
-        System.out.println("Digite o diretório (use uma barra inversa): ");
-        String diretorio = scanner.nextLine().replace("\\", "\\\\");
+            System.out.println("Digite o diretório (use uma barra inversa): ");
+            String diretorio = scanner.nextLine().replace("\\", "\\\\");
 
-        File pasta = new File(diretorio);
+            File pasta = new File(diretorio);
 
-        // Verificações iniciais
-        if (!pasta.exists() || !pasta.isDirectory()) {
-            System.out.println("Diretório inválido. Por favor, verifique o caminho e tente novamente.");
-            return;
-        }
+            // Verificações iniciais
+            if (!pasta.exists() || !pasta.isDirectory()) {
+                System.out.println("Diretório inválido. Por favor, verifique o caminho e tente novamente.");
+                continue;
+            }
 
-        if (!extensao.startsWith(".")) {
-            System.out.println("Extensão inválida. Por favor, certifique-se de que a extensão comece com um ponto.");
-            return;
-        }
+            if (!extensao.startsWith(".")) {
+                System.out.println("Extensão inválida. Por favor, certifique-se de que a extensão comece com um ponto.");
+                continue;
+            }
 
-        // Contagem inicial de arquivos
-        int totalArquivos = contarArquivos(pasta, valorAntigo, extensao);
-        System.out.println("Total de arquivos encontrados: " + totalArquivos);
+            // Contagem inicial de arquivos
+            int totalArquivos = contarArquivos(pasta, valorAntigo, extensao);
+            System.out.println("Total de arquivos encontrados: " + totalArquivos);
 
-        // Renomear arquivos
-        int arquivosAlterados = renomearArquivos(pasta, valorAntigo, valorNovo, extensao);
-        System.out.println("Total de arquivos renomeados: " + arquivosAlterados);
-        System.out.println("Fim da execução");
+            // Renomeia arquivos
+            int arquivosAlterados = renomearArquivos(pasta, valorAntigo, valorNovo, extensao);
+            System.out.println("Total de arquivos renomeados: " + arquivosAlterados);
+
+            // Pergunta se deseja continuar
+            System.out.println("Deseja renomear mais algum item? (s/n)");
+            continuar = scanner.nextLine().trim().toLowerCase();
+        } while (continuar.equals("s"));
+
+        System.out.println("Programa encerrado.");
+        scanner.close();
     }
 
     public static int contarArquivos(File pasta, String valorAntigo, String extensao) {
