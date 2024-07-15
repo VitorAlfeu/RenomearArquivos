@@ -1,6 +1,8 @@
 package renomearArquivos;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class RenomearArquivos {
@@ -20,14 +22,18 @@ public class RenomearArquivos {
 
             System.out.println("Digite a extensão dos arquivos (exemplo: .txt) ou deixe em branco para incluir todas as extensões: ");
             String extensao = scanner.nextLine().trim();
-            
+
             if (extensao.isEmpty()) {
                 extensao = null;
             }
 
-            System.out.println("Digite o diretório (exemplo: C:\\Usuarios\\SeuUsuario\\Documentos\\Arquivos) ou pressione Enter para usar o último diretório utilizado: ");
+            if (ultimoDiretorio.isEmpty()) {
+            	System.out.println("Digite o diretório (exemplo: C:\\Usuarios\\SeuUsuario\\Documentos\\Arquivos)");            	
+            } else {
+            	System.out.println("Digite o diretório (exemplo: C:\\Usuarios\\SeuUsuario\\Documentos\\Arquivos) ou pressione Enter para usar o diretório " + ultimoDiretorio.replace("\\\\", "\\") + ": ");	
+            }
             String diretorio = scanner.nextLine().trim();
-            
+
             if (diretorio.isEmpty() && !ultimoDiretorio.isEmpty()) {
                 diretorio = ultimoDiretorio;
             } else {
@@ -52,11 +58,25 @@ public class RenomearArquivos {
             int totalArquivos = contarArquivos(pasta, valorAntigo, extensao);
             System.out.println("Total de arquivos encontrados: " + totalArquivos);
 
-            // Renomeia arquivos
-            int arquivosAlterados = renomearArquivos(pasta, valorAntigo, valorNovo, extensao);
-            System.out.println("Total de arquivos renomeados: " + arquivosAlterados);
+            // Exibe alterações que serão feitas
+            List<String[]> alteracoes = listarAlteracoes(pasta, valorAntigo, valorNovo, extensao);
+            for (String[] alteracao : alteracoes) {
+                System.out.println("Renomear: " + alteracao[0] + " para " + alteracao[1]);
+            }
 
             // Pergunta se deseja continuar
+            System.out.println("Deseja continuar com essas alterações? (s/n)");
+            String resposta = scanner.nextLine().trim().toLowerCase();
+
+            if (resposta.equals("s")) {
+                // Renomear arquivos
+                int arquivosAlterados = renomearArquivos(alteracoes);
+                System.out.println("Total de arquivos renomeados: " + arquivosAlterados);
+            } else {
+                System.out.println("Alterações canceladas.");
+            }
+
+            // Perguntar se deseja continuar com novos parâmetros
             System.out.println("Deseja renomear mais algum item? (s/n)");
             continuar = scanner.nextLine().trim().toLowerCase();
         } while (continuar.equals("s"));
@@ -80,23 +100,33 @@ public class RenomearArquivos {
         return count;
     }
 
-    public static int renomearArquivos(File pasta, String valorAntigo, String valorNovo, String extensao) {
-        int count = 0;
+    public static List<String[]> listarAlteracoes(File pasta, String valorAntigo, String valorNovo, String extensao) {
+        List<String[]> alteracoes = new ArrayList<>();
         File[] arquivos = pasta.listFiles();
         if (arquivos != null) {
             for (File arquivo : arquivos) {
                 if (arquivo.isDirectory()) {
-                    count += renomearArquivos(arquivo, valorAntigo, valorNovo, extensao);
+                    alteracoes.addAll(listarAlteracoes(arquivo, valorAntigo, valorNovo, extensao));
                 } else if (arquivo.getName().contains(valorAntigo) && (extensao == null || arquivo.getName().endsWith(extensao))) {
                     String novoNome = arquivo.getName().replace(valorAntigo, valorNovo);
-                    File novoArquivo = new File(arquivo.getParent(), novoNome);
-                    if (arquivo.renameTo(novoArquivo)) {
-                        System.out.println("Renomeado: " + arquivo.getPath() + " para " + novoArquivo.getPath());
-                        count++;
-                    } else {
-                        System.out.println("Falha ao renomear: " + arquivo.getPath());
-                    }
+                    String[] alteracao = {arquivo.getPath(), new File(arquivo.getParent(), novoNome).getPath()};
+                    alteracoes.add(alteracao);
                 }
+            }
+        }
+        return alteracoes;
+    }
+
+    public static int renomearArquivos(List<String[]> alteracoes) {
+        int count = 0;
+        for (String[] alteracao : alteracoes) {
+            File arquivoAntigo = new File(alteracao[0]);
+            File arquivoNovo = new File(alteracao[1]);
+            if (arquivoAntigo.renameTo(arquivoNovo)) {
+                System.out.println("Renomeado: " + arquivoAntigo.getPath() + " para " + arquivoNovo.getPath());
+                count++;
+            } else {
+                System.out.println("Falha ao renomear: " + arquivoAntigo.getPath());
             }
         }
         return count;
